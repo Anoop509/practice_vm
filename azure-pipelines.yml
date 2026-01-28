@@ -17,6 +17,6 @@ stages:
         - task: TerraformTask@5
           inputs:
             provider: 'azurerm'
-            command: 'apply'
+            command: 'destroy'
             commandOptions: '--auto-approve'
             environmentServiceNameAzureRM: 'anoopkaconnection'
