@@ -7,6 +7,7 @@ stages:
         displayName: anoopjob
         steps:
         - task: TerraformTask@5
+          displayName: terraform init
           inputs:
             provider: 'azurerm'
             command: 'init'
@@ -15,8 +16,9 @@ stages:
             backendAzureRmContainerName: 'anoopcontainer'
             backendAzureRmKey: 'anoop.tfstate'
         - task: TerraformTask@5
+          displayName:  terraform apply
           inputs:
             provider: 'azurerm'
-            command: 'destroy'
+            command: 'apply'
             commandOptions: '--auto-approve'
             environmentServiceNameAzureRM: 'anoopkaconnection'
