@@ -1,34 +1,95 @@
 trigger: none
+
 pool: anoop_pool
 
 stages:
-- stage: terraform
-  displayName: Terraform Stage
+
+# -------------------------
+# Stage 1: Code Quality
+# -------------------------
+- stage: Code_Quality
+  displayName: Code Quality & Security
   jobs:
-  - job: terraform
-    displayName: Init | Plan | Apply
+  - job: quality
+    displayName: Terraform Checks
+    steps:
+    - script: echo "terraform fmt -check"
+      displayName: Terraform Format Check
+
+    - script: echo "tflint scan"
+      displayName: TFLint Static Analysis
+
+    - script: echo "tfsec scan"
+      displayName: Tfsec Security Scan
+
+
+# -------------------------
+# Stage 2: Cost Estimation
+# -------------------------
+- stage: Cost_Estimation
+  displayName: Infrastructure Cost Estimation
+  dependsOn: Code_Quality
+  jobs:
+  - job: cost
+    displayName: Infracost Analysis
+    steps:
+    - script: echo "infracost breakdown"
+      displayName: Infracost Analysis
+
+
+# -------------------------
+# Stage 3: Terraform Init
+# -------------------------
+- stage: Terraform_Init
+  displayName: Terraform Init
+  dependsOn: Cost_Estimation
+  jobs:
+  - job: init
+    displayName: Init Job
     steps:
     - task: TerraformTask@5
       displayName: terraform init
       inputs:
-        provider: 'azurerm'
-        command: 'init'
-        backendServiceArm: 'anoopkaconnection'
-        backendAzureRmStorageAccountName: 'anooprahulsa'
-        backendAzureRmContainerName: 'anoopcontainer'
-        backendAzureRmKey: 'anoop.tfstate'
+        provider: azurerm
+        command: init
+        backendServiceArm: anoopkaconnection
+        backendAzureRmStorageAccountName: anooprahulsa
+        backendAzureRmContainerName: anoopcontainer
+        backendAzureRmKey: anoop.tfstate
 
+
+# -------------------------
+# Stage 4: Terraform Plan
+# -------------------------
+- stage: Terraform_Plan
+  displayName: Terraform Plan Review
+  dependsOn: Terraform_Init
+  jobs:
+  - job: plan
+    displayName: Plan Job
+    steps:
     - task: TerraformTask@5
       displayName: terraform plan
       inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        environmentServiceNameAzureRM: 'anoopkaconnection'
+        provider: azurerm
+        command: plan
+        environmentServiceNameAzureRM: anoopkaconnection
 
+
+# -------------------------
+# Stage 5: Terraform Apply
+# -------------------------
+- stage: Terraform_Apply
+  displayName: Infrastructure Deployment
+  dependsOn: Terraform_Plan
+  jobs:
+  - job: apply
+    displayName: Apply Job
+    steps:
     - task: TerraformTask@5
       displayName: terraform apply
       inputs:
-        provider: 'azurerm'
-        command: 'apply'
-        commandOptions: '--auto-approve'
-        environmentServiceNameAzureRM: 'anoopkaconnection'
+        provider: azurerm
+        command: apply
+        commandOptions: --auto-approve
+        environmentServiceNameAzureRM: anoopkaconnection
