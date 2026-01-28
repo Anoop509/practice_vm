@@ -1,44 +1,34 @@
 trigger: none
 pool: anoop_pool
+
 stages:
-  - stage: terraform
-    displayName: Terraform Stage
-    jobs:
-      - job: init
-        displayName: init
-        steps:
-        - task: TerraformTask@5
-          displayName: terraform init
-          inputs:
-            provider: 'azurerm'
-            command: 'init'
-            backendServiceArm: 'anoopkaconnection'
-            backendAzureRmStorageAccountName: 'anooprahulsa'
-            backendAzureRmContainerName: 'anoopcontainer'
-            backendAzureRmKey: 'anoop.tfstate'
+- stage: terraform
+  displayName: Terraform Stage
+  jobs:
+  - job: terraform
+    displayName: Init | Plan | Apply
+    steps:
+    - task: TerraformTask@5
+      displayName: terraform init
+      inputs:
+        provider: 'azurerm'
+        command: 'init'
+        backendServiceArm: 'anoopkaconnection'
+        backendAzureRmStorageAccountName: 'anooprahulsa'
+        backendAzureRmContainerName: 'anoopcontainer'
+        backendAzureRmKey: 'anoop.tfstate'
 
+    - task: TerraformTask@5
+      displayName: terraform plan
+      inputs:
+        provider: 'azurerm'
+        command: 'plan'
+        environmentServiceNameAzureRM: 'anoopkaconnection'
 
-      - job: plan
-        displayName: plan
-        dependsOn: init
-        steps:
-        - task: TerraformTask@5
-          displayName:  terraform plan
-          inputs:
-            provider: 'azurerm'
-            command: 'plan'
-            environmentServiceNameAzureRM: 'anoopkaconnection'
-
-
-
-      - job: apply
-        displayName: apply
-        dependsOn: plan
-        steps:
-        - task: TerraformTask@5
-          displayName:  terraform apply
-          inputs:
-            provider: 'azurerm'
-            command: 'apply'
-            commandOptions: '--auto-approve'
-            environmentServiceNameAzureRM: 'anoopkaconnection'
+    - task: TerraformTask@5
+      displayName: terraform apply
+      inputs:
+        provider: 'azurerm'
+        command: 'apply'
+        commandOptions: '--auto-approve'
+        environmentServiceNameAzureRM: 'anoopkaconnection'
