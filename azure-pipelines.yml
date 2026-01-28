@@ -1,10 +1,11 @@
 trigger: none
 pool: anoop_pool
 stages:
-  - stage: 
+  - stage: terraform
+    displayName: Terraform Stage
     jobs:
-      - job: anoopjob
-        displayName: anoopjob
+      - job: init
+        displayName: init
         steps:
         - task: TerraformTask@5
           displayName: terraform init
@@ -15,6 +16,25 @@ stages:
             backendAzureRmStorageAccountName: 'anooprahulsa'
             backendAzureRmContainerName: 'anoopcontainer'
             backendAzureRmKey: 'anoop.tfstate'
+
+
+      - job: plan
+        displayName: plan
+        dependsOn: init
+        steps:
+        - task: TerraformTask@5
+          displayName:  terraform plan
+          inputs:
+            provider: 'azurerm'
+            command: 'plan'
+            environmentServiceNameAzureRM: 'anoopkaconnection'
+
+
+
+      - job: apply
+        displayName: apply
+        dependsOn: plan
+        steps:
         - task: TerraformTask@5
           displayName:  terraform apply
           inputs:
